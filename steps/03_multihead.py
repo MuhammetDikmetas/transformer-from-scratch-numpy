@@ -21,12 +21,10 @@ def softmax(z):
 
 
 def split_heads(x):
-    """(T, d_model) -> (n_head, T, d_head)"""
     return x.reshape(T, n_head, d_head).transpose(1, 0, 2)
 
 
 def merge_heads(x):
-    """(n_head, T, d_head) -> (T, d_model)"""
     return x.transpose(1, 0, 2).reshape(T, d_model)
 
 
