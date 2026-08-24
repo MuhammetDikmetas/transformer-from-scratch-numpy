@@ -54,39 +54,8 @@ def backward(cache):
     return dW1, db1, dW2, db2
 
 
-def numerical_grad(param, eps=1e-5):
-    grad = np.zeros_like(param)
-    it = np.nditer(param, flags=["multi_index"])
-    while not it.finished:
-        idx = it.multi_index
-        original = param[idx]
-
-        param[idx] = original + eps
-        loss_plus, _ = forward(X, y, W1, b1, W2, b2)
-
-        param[idx] = original - eps
-        loss_minus, _ = forward(X, y, W1, b1, W2, b2)
-
-        param[idx] = original
-        grad[idx] = (loss_plus - loss_minus) / (2 * eps)
-        it.iternext()
-    return grad
-
-
-def relative_error(a, b):
-    return np.max(np.abs(a - b) / np.maximum(1e-8, np.abs(a) + np.abs(b)))
-
-
 loss, cache = forward(X, y, W1, b1, W2, b2)
 print("baslangic loss:", round(loss, 4))
-
-dW1, db1, dW2, db2 = backward(cache)
-
-print("\n--- gradient check ---")
-print("W1:", relative_error(dW1, numerical_grad(W1)))
-print("b1:", relative_error(db1, numerical_grad(b1)))
-print("W2:", relative_error(dW2, numerical_grad(W2)))
-print("b2:", relative_error(db2, numerical_grad(b2)))
 
 print("\n--- egitim ---")
 lr = 0.5

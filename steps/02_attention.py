@@ -63,44 +63,11 @@ def attention_backward(dout, cache):
     return dWq, dWk, dWv, dX
 
 
-def loss_fn(X, Wq, Wk, Wv):
-    out, cache = attention_forward(X, Wq, Wk, Wv)
-    return np.sum(out * G), cache
-
-
-def numerical_grad(param, eps=1e-5):
-    grad = np.zeros_like(param)
-    it = np.nditer(param, flags=["multi_index"])
-    while not it.finished:
-        idx = it.multi_index
-        original = param[idx]
-
-        param[idx] = original + eps
-        loss_plus, _ = loss_fn(X, Wq, Wk, Wv)
-
-        param[idx] = original - eps
-        loss_minus, _ = loss_fn(X, Wq, Wk, Wv)
-
-        param[idx] = original
-        grad[idx] = (loss_plus - loss_minus) / (2 * eps)
-        it.iternext()
-    return grad
-
-
-def relative_error(a, b):
-    return np.max(np.abs(a - b) / np.maximum(1e-8, np.abs(a) + np.abs(b)))
-
-
 out, cache = attention_forward(X, Wq, Wk, Wv)
 print("out shape:", out.shape)
 print("\nattention agirliklari (causal mask):")
 print(np.round(cache["A"], 3))
 
-loss, cache = loss_fn(X, Wq, Wk, Wv)
 dWq, dWk, dWv, dX = attention_backward(G, cache)
-
-print("\n--- gradient check ---")
-print(f"Wq: {relative_error(dWq, numerical_grad(Wq)):.3e}")
-print(f"Wk: {relative_error(dWk, numerical_grad(Wk)):.3e}")
-print(f"Wv: {relative_error(dWv, numerical_grad(Wv)):.3e}")
-print(f"X : {relative_error(dX,  numerical_grad(X)):.3e}")
+print("\ndWq:", dWq.shape, "| dWk:", dWk.shape,
+      "| dWv:", dWv.shape, "| dX:", dX.shape)

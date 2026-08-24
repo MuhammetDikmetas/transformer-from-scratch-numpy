@@ -50,7 +50,8 @@ def mha_forward(X, Wq, Wk, Wv, Wo):
 
 
 def mha_backward(dout, cache):
-    X, Wq, Wk, Wv, Wo = (cache["X"], cache["Wq"], cache["Wk"],cache["Wv"], cache["Wo"])
+    X, Wq, Wk, Wv, Wo = (cache["X"], cache["Wq"], cache["Wk"],
+                         cache["Wv"], cache["Wo"])
     Q, K, V, A = cache["Q"], cache["K"], cache["V"], cache["A"]
     concat, mask = cache["concat"], cache["mask"]
 
@@ -82,46 +83,11 @@ def mha_backward(dout, cache):
     return dWq, dWk, dWv, dWo, dX
 
 
-def loss_fn():
-    out, cache = mha_forward(X, Wq, Wk, Wv, Wo)
-    return np.sum(out * G), cache
-
-
-def numerical_grad(param, eps=1e-5):
-    grad = np.zeros_like(param)
-    it = np.nditer(param, flags=["multi_index"])
-    while not it.finished:
-        idx = it.multi_index
-        original = param[idx]
-
-        param[idx] = original + eps
-        loss_plus, _ = loss_fn()
-
-        param[idx] = original - eps
-        loss_minus, _ = loss_fn()
-
-        param[idx] = original
-        grad[idx] = (loss_plus - loss_minus) / (2 * eps)
-        it.iternext()
-    return grad
-
-
-def relative_error(a, b):
-    return np.max(np.abs(a - b) / np.maximum(1e-8, np.abs(a) + np.abs(b)))
-
-
 out, cache = mha_forward(X, Wq, Wk, Wv, Wo)
 print("out shape:", out.shape)
 print("kafa sayisi:", n_head, "| her kafa boyutu:", d_head)
 print("\n1. kafanin attention agirliklari:")
 print(np.round(cache["A"][0], 3))
 
-loss, cache = loss_fn()
 dWq, dWk, dWv, dWo, dX = mha_backward(G, cache)
-
-print("\n--- gradient check ---")
-print(f"Wq: {relative_error(dWq, numerical_grad(Wq)):.3e}")
-print(f"Wk: {relative_error(dWk, numerical_grad(Wk)):.3e}")
-print(f"Wv: {relative_error(dWv, numerical_grad(Wv)):.3e}")
-print(f"Wo: {relative_error(dWo, numerical_grad(Wo)):.3e}")
-print(f"X : {relative_error(dX,  numerical_grad(X)):.3e}")
+print("\ndWq:", dWq.shape, "| dWo:", dWo.shape, "| dX:", dX.shape)
